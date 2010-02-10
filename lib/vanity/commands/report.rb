@@ -23,7 +23,7 @@ module Vanity
 
     # Escape HTML.
     def h(html)
-      CGI.escapeHTML(html)
+      CGI.escapeHTML(html.to_s)
     end
 
     # Dumbed down from Rails' simple_format.

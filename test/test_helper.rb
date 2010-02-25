@@ -8,6 +8,7 @@ require "action_controller/test_case"
 require "active_record"
 require "initializer"
 Rails.configuration = Rails::Configuration.new
+require "phusion_passenger/events"
 require "lib/vanity"
 require "timecop"
 
@@ -15,8 +16,6 @@ require "timecop"
 if $VERBOSE
   $logger = Logger.new(STDOUT)
   $logger.level = Logger::DEBUG
-else
-  $logger = Logger.new("/dev/null")
 end
 
 class Test::Unit::TestCase
@@ -36,8 +35,8 @@ class Test::Unit::TestCase
   # Call this if you need a new playground, e.g. to re-define the same experiment,
   # or reload an experiment (saved by the previous playground).
   def new_playground
-    Vanity.playground = Vanity::Playground.new(:logger=>$logger, :load_path=>"tmp/experiments", :db=>15)
-    Vanity.playground.mock! unless ENV["REDIS"]
+    Vanity.playground = Vanity::Playground.new("::15", :logger=>$logger, :load_path=>"tmp/experiments")
+    #Vanity.playground.mock! unless ENV["REDIS"]
   end
 
   # Defines the specified metrics (one or more names).  Returns metric, or array

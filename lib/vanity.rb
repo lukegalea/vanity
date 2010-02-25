@@ -20,13 +20,14 @@ module Vanity
     PATCH = version[2]
     STRING = "#{MAJOR}.#{MINOR}.#{PATCH}"
   end
+
 end
 
 require "vanity/backport" if RUBY_VERSION < "1.9"
 # Metrics.
 require "vanity/metric/base"
 require "vanity/metric/active_record"
-require "vanity/metric/google_analytics" if defined?(Garb)
+require "vanity/metric/google_analytics"
 # Experiments.
 require "vanity/experiment/base"
 require "vanity/experiment/ab_test"
@@ -35,4 +36,5 @@ require "vanity/playground"
 require "vanity/helpers"
 Vanity.autoload :MockRedis, "vanity/mock_redis"
 Vanity.autoload :Commands, "vanity/commands"
-require "vanity/rails" if defined?(Rails)
+# Integration with various frameworks.
+require "vanity/frameworks/rails" if defined?(Rails)

@@ -1,7 +1,8 @@
 module Vanity
   class Metric
     
-    # Use Google Analytics metric.
+    # Use Google Analytics metric.  Note: you must +require "garb"+ before
+    # vanity.
     # 
     # @example Page views
     #   metric "Page views" do
@@ -15,14 +16,13 @@ module Vanity
     # @since 1.3.0
     # @see Vanity::Metric::GoogleAnalytics
     def google_analytics(web_property_id, *args)
-      gem "garb"
       require "garb"
       options = Hash === args.last ? args.pop : {}
       metric = options.shift || :pageviews
       @ga_resource = Vanity::Metric::GoogleAnalytics::Resource.new(web_property_id, metric)
       @ga_mapper = options[:mapper] ||= lambda { |entry| entry.send(@ga_resource.metrics.elements.first).to_i }
       extend GoogleAnalytics
-    rescue Gem::LoadError
+    rescue LoadError
       fail LoadError, "Google Analytics metrics require Garb, please gem install garb first"
     end
 
@@ -47,9 +47,8 @@ module Vanity
       end
 
       class Resource
-        include Garb::Resource
-
         def initialize(web_property_id, metric)
+          self.class.send :include, Garb::Resource
           @web_property_id = web_property_id
           metrics metric
           dimensions :date
@@ -62,7 +61,6 @@ module Vanity
           @end_date = end_date
           Garb::ReportResponse.new(send_request_for_body).results
         end
-
       end
 
     end

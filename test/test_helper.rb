@@ -3,11 +3,21 @@ $LOAD_PATH.unshift File.expand_path("../lib", File.dirname(__FILE__))
 RAILS_ROOT = File.expand_path("..")
 require "test/unit"
 require "mocha"
+
 require "action_controller"
 require "action_controller/test_case"
 require "active_record"
 require "initializer"
 Rails.configuration = Rails::Configuration.new
+
+require "merb-core"
+Merb::Config.use { |c|
+  c[:reload_classes] = false
+}
+Merb.start_environment(:testing => true, :adapter => 'runner', :environment => 'test')
+Merb::BootLoader::AfterAppLoads.run
+
+require "merb-core/test"
 require "phusion_passenger/events"
 require "lib/vanity"
 require "timecop"
@@ -75,7 +85,6 @@ ActionController::Routing::Routes.draw do |map|
   map.connect ':controller/:action/:id'
 end
 
-
 ActiveRecord::Base.logger = $logger
 ActiveRecord::Base.establish_connection :adapter=>"sqlite3", :database=>File.expand_path("database.sqlite")
 # Call this to define aggregate functions not available in SQlite.
@@ -104,7 +113,6 @@ class ActiveRecord::Base
     end
   end
 end
-
 
 class Array
   # Not in Ruby 1.8.6.

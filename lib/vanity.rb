@@ -38,3 +38,4 @@ Vanity.autoload :MockRedis, "vanity/mock_redis"
 Vanity.autoload :Commands, "vanity/commands"
 # Integration with various frameworks.
 require "vanity/frameworks/rails" if defined?(Rails)
+require "vanity/frameworks/merb" if defined?(Merb)

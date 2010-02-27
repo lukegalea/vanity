@@ -135,60 +135,62 @@ Merb::BootLoader::AfterAppLoads.run
 $stdout << Vanity.playground.load_path
     RB
   end
-#
-#
-#   # -- Connection configuration --
-#
-#   def test_default_connection
-#     assert_equal "localhost:6379", load_merb(<<-RB)
-# initializer.after_initialize
-# $stdout << Vanity.playground.redis.server
-#     RB
-#   end
-#
-#   def test_configured_connection
-#     assert_equal "127.0.0.1:6379", load_merb(<<-RB)
-# Vanity.playground.redis = "127.0.0.1:6379"
-# initializer.after_initialize
-# $stdout << Vanity.playground.redis.server
-#     RB
-#   end
-#
-#   def test_test_connection
-#     assert_equal "Vanity::MockRedis", load_merb(<<-RB)
-# Vanity.playground.test!
-# initializer.after_initialize
-# $stdout << Vanity.playground.redis.class
-#     RB
-#   end
-#
-#   def test_connection_from_yaml
-#     FileUtils.mkpath "tmp/config"
-#     yml = File.open("tmp/config/redis.yml", "w")
-#     yml << "production: internal.local:6379\n"
-#     yml.flush
-#     assert_equal "internal.local:6379", load_merb(<<-RB)
-# initializer.after_initialize
-# $stdout << Vanity.playground.redis.server
-#     RB
-#   ensure
-#     File.unlink yml
-#   end
-#
-#   def test_connection_from_yaml_missing
-#     FileUtils.mkpath "tmp/config"
-#     yml = File.open("tmp/config/redis.yml", "w")
-#     yml << "development: internal.local:6379\n"
-#     yml.flush
-#     assert_equal "localhost:6379", load_merb(<<-RB)
-# initializer.after_initialize
-# $stdout << Vanity.playground.redis.server
-#     RB
-#   ensure
-#     File.unlink yml
-#   end
-#
-#
+
+
+  # -- Connection configuration --
+
+  def test_default_connection
+    assert_equal "localhost:6379", load_merb(<<-RB)
+Merb::BootLoader::AfterAppLoads.run
+$stdout << Vanity.playground.redis.server
+    RB
+  end
+
+  def test_configured_connection
+    assert_equal "127.0.0.1:6379", load_merb(<<-RB)
+Vanity.playground.redis = "127.0.0.1:6379"
+Merb::BootLoader::AfterAppLoads.run
+$stdout << Vanity.playground.redis.server
+    RB
+  end
+
+  def test_test_connection
+    assert_equal "Vanity::MockRedis", load_merb(<<-RB)
+Vanity.playground.test!
+Merb::BootLoader::AfterAppLoads.run
+$stdout << Vanity.playground.redis.class
+    RB
+  end
+
+  def test_connection_from_yaml
+    FileUtils.mkpath "tmp/config"
+    yml_file = "tmp/config/redis.yml"
+    yml = File.open(yml_file, "w")
+    yml << "production: internal.local:6379\n"
+    yml.flush
+    assert_equal "internal.local:6379", load_merb(<<-RB)
+Merb::BootLoader::AfterAppLoads.run
+$stdout << Vanity.playground.redis.server
+    RB
+  ensure
+    File.unlink yml_file
+  end
+
+  def test_connection_from_yaml_missing
+    FileUtils.mkpath "tmp/config"
+    yml_file = "tmp/config/redis.yml"
+    yml = File.open(yml_file, "w")
+    yml << "development: internal.local:6379\n"
+    yml.flush
+    assert_equal "localhost:6379", load_merb(<<-RB)
+Merb::BootLoader::AfterAppLoads.run
+$stdout << Vanity.playground.redis.server
+    RB
+  ensure
+    File.unlink yml_file
+  end
+
+
   def load_merb(code)
     tmp = Tempfile.open("test.rb")
     tmp.write <<-RB

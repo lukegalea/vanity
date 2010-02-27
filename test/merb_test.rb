@@ -84,32 +84,32 @@ class UseVanityInMerbTest < Test::Unit::TestCase
     @response = request("/vanity/identity")
     @response.body.to_s.should == "576"
   end
-#
-#   # query parameter filter
-#
-#   def test_redirects_and_loses_vanity_query_parameter
-#     get :index, :foo=>"bar", :_vanity=>"567"
-#     assert_redirected_to "/use_vanity?foo=bar"
-#   end
-#
-#   def test_sets_choices_from_vanity_query_parameter
-#     first = experiment(:pie_or_cake).alternatives.first
-#     # experiment(:pie_or_cake).fingerprint(first)
-#     10.times do
-#       @controller = nil ; setup_controller_request_and_response
-#       get :index, :_vanity=>"aae9ff8081"
-#       assert !experiment(:pie_or_cake).choose
-#       assert experiment(:pie_or_cake).showing?(first)
-#     end
-#   end
-#
-#   def test_does_nothing_with_vanity_query_parameter_for_posts
-#     first = experiment(:pie_or_cake).alternatives.first
-#     post :index, :foo=>"bar", :_vanity=>"567"
-#     assert_response :success
-#     assert !experiment(:pie_or_cake).showing?(first)
-#   end
-#
+
+  # query parameter filter
+
+  def test_redirects_and_loses_vanity_query_parameter
+    @response = request("/vanity", :params => { :foo => "bar", :_vanity => "567" })
+    assert redirect = @response.headers["Location"]
+    assert_equal "/vanity?foo=bar", redirect
+  end
+
+  def test_sets_choices_from_vanity_query_parameter
+    first = experiment(:pie_or_cake).alternatives.first
+    # experiment(:pie_or_cake).fingerprint(first)
+    10.times do
+      @response = request("/vanity", :params => { :_vanity => "aae9ff8081" })
+      assert !experiment(:pie_or_cake).choose
+      assert experiment(:pie_or_cake).showing?(first)
+    end
+  end
+
+  def test_does_nothing_with_vanity_query_parameter_for_posts
+    first = experiment(:pie_or_cake).alternatives.first
+    @response = request("/vanity", :params => { :_vanity => "aae9ff8081" }, :method => "POST")
+    assert_equal 200, @response.status
+    assert !experiment(:pie_or_cake).showing?(first)
+  end
+
 #
 #   # -- Load path --
 #

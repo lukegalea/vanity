@@ -66,7 +66,7 @@ module Vanity
         before :set_vanity_context_filter
         after  :reset_vanity_context_filter
         before :vanity_reload_filter if ::Merb.config[:reload_classes]
-        # before :vanity_query_parameter_filter
+        before :vanity_query_parameter_filter
       end
     end
 
@@ -98,7 +98,7 @@ module Vanity
       # http://example.com/.
       def vanity_query_parameter_filter
         if request.get? && params[:_vanity]
-          hashes = Array(params.delete(:_vanity))
+          hashes = Array(params[:_vanity])
           Vanity.playground.experiments.each do |id, experiment|
             if experiment.respond_to?(:alternatives)
               experiment.alternatives.each do |alt|
@@ -110,7 +110,16 @@ module Vanity
             end
             break if hashes.empty?
           end
-          redirect_to url_for(params)
+          # NOTE: there must be a simpler way to redirect to the exact
+          # current url without the _vanity parameter.
+          query_params = ::Merb::Parse.query(request.query_string)
+          query_params.delete(:_vanity)
+          query_string = ::Merb::Parse.params_to_query_string(query_params)
+          if query_string.empty?
+            redirect request.uri
+          else
+            redirect "#{request.uri}?#{query_string}"
+          end
         end
       end
 

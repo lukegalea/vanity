@@ -13,11 +13,10 @@ Rails.configuration = Rails::Configuration.new
 require "merb-core"
 Merb::Config.use { |c|
   c[:reload_classes] = false
+  c[:log_stream] = nil
 }
-Merb.start_environment(:testing => true, :adapter => 'runner', :environment => 'test')
-Merb::BootLoader::AfterAppLoads.run
+Merb.start_environment(:testing => true)
 
-require "merb-core/test"
 require "phusion_passenger/events"
 require "lib/vanity"
 require "timecop"

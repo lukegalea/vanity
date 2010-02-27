@@ -110,44 +110,44 @@ class UseVanityInMerbTest < Test::Unit::TestCase
     assert !experiment(:pie_or_cake).showing?(first)
   end
 
-#
-#   # -- Load path --
-#
-#   def test_load_path
-#     assert_equal File.expand_path("tmp/experiments"), load_rails(<<-RB)
-# initializer.after_initialize
-# $stdout << Vanity.playground.load_path
-#     RB
-#   end
-#
-#   def test_settable_load_path
-#     assert_equal File.expand_path("tmp/predictions"), load_rails(<<-RB)
-# Vanity.playground.load_path = "predictions"
-# initializer.after_initialize
-# $stdout << Vanity.playground.load_path
-#     RB
-#   end
-#
-#   def test_absolute_load_path
-#     assert_equal File.expand_path("/tmp/var"), load_rails(<<-RB)
-# Vanity.playground.load_path = "/tmp/var"
-# initializer.after_initialize
-# $stdout << Vanity.playground.load_path
-#     RB
-#   end
+
+  # -- Load path --
+
+  def test_load_path
+    assert_equal File.expand_path("tmp/experiments"), load_merb(<<-RB)
+Merb::BootLoader::AfterAppLoads.run
+$stdout << Vanity.playground.load_path
+    RB
+  end
+
+  def test_settable_load_path
+    assert_equal File.expand_path("tmp/predictions"), load_merb(<<-RB)
+Vanity.playground.load_path = "predictions"
+Merb::BootLoader::AfterAppLoads.run
+$stdout << Vanity.playground.load_path
+    RB
+  end
+
+  def test_absolute_load_path
+    assert_equal "/tmp/var", load_merb(<<-RB)
+Vanity.playground.load_path = "/tmp/var"
+Merb::BootLoader::AfterAppLoads.run
+$stdout << Vanity.playground.load_path
+    RB
+  end
 #
 #
 #   # -- Connection configuration --
 #
 #   def test_default_connection
-#     assert_equal "localhost:6379", load_rails(<<-RB)
+#     assert_equal "localhost:6379", load_merb(<<-RB)
 # initializer.after_initialize
 # $stdout << Vanity.playground.redis.server
 #     RB
 #   end
 #
 #   def test_configured_connection
-#     assert_equal "127.0.0.1:6379", load_rails(<<-RB)
+#     assert_equal "127.0.0.1:6379", load_merb(<<-RB)
 # Vanity.playground.redis = "127.0.0.1:6379"
 # initializer.after_initialize
 # $stdout << Vanity.playground.redis.server
@@ -155,7 +155,7 @@ class UseVanityInMerbTest < Test::Unit::TestCase
 #   end
 #
 #   def test_test_connection
-#     assert_equal "Vanity::MockRedis", load_rails(<<-RB)
+#     assert_equal "Vanity::MockRedis", load_merb(<<-RB)
 # Vanity.playground.test!
 # initializer.after_initialize
 # $stdout << Vanity.playground.redis.class
@@ -167,7 +167,7 @@ class UseVanityInMerbTest < Test::Unit::TestCase
 #     yml = File.open("tmp/config/redis.yml", "w")
 #     yml << "production: internal.local:6379\n"
 #     yml.flush
-#     assert_equal "internal.local:6379", load_rails(<<-RB)
+#     assert_equal "internal.local:6379", load_merb(<<-RB)
 # initializer.after_initialize
 # $stdout << Vanity.playground.redis.server
 #     RB
@@ -180,7 +180,7 @@ class UseVanityInMerbTest < Test::Unit::TestCase
 #     yml = File.open("tmp/config/redis.yml", "w")
 #     yml << "development: internal.local:6379\n"
 #     yml.flush
-#     assert_equal "localhost:6379", load_rails(<<-RB)
+#     assert_equal "localhost:6379", load_merb(<<-RB)
 # initializer.after_initialize
 # $stdout << Vanity.playground.redis.server
 #     RB
@@ -189,28 +189,29 @@ class UseVanityInMerbTest < Test::Unit::TestCase
 #   end
 #
 #
-#   def load_rails(code)
-#     tmp = Tempfile.open("test.rb")
-#     tmp.write <<-RB
-# $:.delete_if { |path| path[/gems\\/vanity-\\d/] }
-# $:.unshift File.expand_path("../lib")
-# RAILS_ROOT = File.expand_path(".")
-# RAILS_ENV = "production"
-# require "initializer"
-# require "active_support"
-# Rails.configuration = Rails::Configuration.new
-# initializer = Rails::Initializer.new(Rails.configuration)
-# initializer.check_gem_dependencies
-# require "vanity"
-#     RB
-#     tmp.write code
-#     tmp.flush
-#     Dir.chdir "tmp" do
-#       open("|ruby #{tmp.path}").read
-#     end
-#   rescue
-#     tmp.close!
-#   end
+  def load_merb(code)
+    tmp = Tempfile.open("test.rb")
+    tmp.write <<-RB
+$:.delete_if { |path| path[/gems\\/vanity-\\d/] }
+$:.unshift File.expand_path("../lib")
+
+require "merb-core"
+Merb::Config.use { |c|
+  c[:reload_classes] = false,
+  c[:merb_root] = File.expand_path(".")
+}
+Merb.start_environment(:environment => 'production', :testing => true)
+
+require "vanity"
+    RB
+    tmp.write code
+    tmp.flush
+    Dir.chdir "tmp" do
+      open("|ruby #{tmp.path}").read
+    end
+  rescue
+    tmp.close!
+  end
 
 
   def teardown

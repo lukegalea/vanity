@@ -183,7 +183,7 @@ end
 if defined?(Merb::BootLoader)
   Merb::BootLoader.after_app_loads do
     Vanity.playground.logger ||= Merb.logger
-    Vanity.playground.load_path = Merb.root / "app" / "experiments"
+    Vanity.playground.load_path = Vanity.playground.load_path.match(/^\//) ? Vanity.playground.load_path : Merb.root / Vanity.playground.load_path
     Vanity.playground.load!
     config_file = Merb.root + "config/redis.yml"
     if !Vanity.playground.connected? && File.exist?(config_file)

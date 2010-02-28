@@ -167,6 +167,41 @@ module Vanity
 
     end
 
+    # Step 1: Add matches to config/router.rb:
+    #   to(:controller => "vanities") do
+    #     match('/vanity').to(:action => "index").name(:vanity)
+    #     match('/vanity/choose/:experiment_id/:alt_id').to(:action => "chooses").name(:vanity_choose_experiment)
+    #   end
+    #
+    # Step 2: Create a new experiments controller:
+    #   class Vanities < Application
+    #     include Vanity::Merb::Dashboard
+    #   end
+    #
+    # Step 3: Open your browser to http://localhost:3000/vanity
+    module Dashboard
+      def self.included(base)
+        base.show_action(:index, :chooses)
+      end
+      def index
+        Vanity::Commands.render(Vanity.template("report"))
+      end
+      def chooses(experiment_id, alt_id)
+        exp = Vanity.playground.experiment(experiment_id.to_sym)
+        exp.chooses(exp.alternatives[alt_id.to_i].value)
+        Vanity::Commands.render(Vanity.template("experiment"), :experiment => exp)
+      end
+    end
+
+  end
+end
+
+# Tell Vanity how to generate urls in reports.
+if defined?(Merb::Router)
+  module Vanity::Render
+    def url_for(options)
+      ::Merb::Router.url(:vanity_choose_experiment, :experiment_id => options[:e], :alt_id => options[:a])
+    end
   end
 end
 
